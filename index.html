@@ -1235,22 +1235,7 @@ const userIdentifier = tg.initDataUnsafe?.user?.username ||
 const firebaseSecureId = simpleHash(userIdentifier.toString());
 console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
         
-        // Cloud Storage support
-        let cloudStorageEnabled = false;
-        let syncInProgress = false;
-        
-        // Check if Cloud Storage is available and version is sufficient
-        try {
-            if (tg.CloudStorage && tg.version >= '6.9') {
-                cloudStorageEnabled = true;
-                console.log('Cloud Storage is enabled');
-            } else if (tg.CloudStorage) {
-                console.warn('Cloud Storage API found but version is too low:', tg.version);
-            }
-        } catch (e) {
-            console.log('Cloud Storage is not available:', e.message);
-        }
-        
+                
         // Default skills
         let skills = [
             {
@@ -1399,12 +1384,7 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
            if (tg.HapticFeedback) {
                tg.HapticFeedback.impactOccurred('light');
            }
-           
-           // Sync to cloud if available
-           if (cloudStorageEnabled && !syncInProgress) {
-               syncToCloud();
-           }
-           
+                      
            // Sync to Firebase if available
            if (firebaseEnabled && firebaseUser && !syncInProgress) {
                syncToFirebase();
@@ -1495,105 +1475,7 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
                });
        }
        
-       // Cloud sync functions
-       function syncToCloud() {
-           if (!cloudStorageEnabled || syncInProgress) return;
-           
-           syncInProgress = true;
-           const cloudData = {
-               skills: skills,
-               data: data,
-               comments: comments,
-               startDate: startDate,
-               lastSync: new Date().toISOString(),
-               version: '3.1'
-           };
-           
-           try {
-               tg.CloudStorage.setItem('skillsTrackerData', JSON.stringify(cloudData), (error) => {
-                   syncInProgress = false;
-                   if (error) {
-                       console.error('Cloud sync error:', error);
-                   } else {
-                       showSyncNotification('Синхронизировано с облаком');
-                       localStorage.setItem(storagePrefix + 'lastSync', cloudData.lastSync);
-                   }
-               });
-           } catch (e) {
-               syncInProgress = false;
-               console.error('Cloud Storage error:', e);
-               // Fallback to local storage only
-           }
-       }
-       
-       function syncFromCloud() {
-           if (!cloudStorageEnabled || syncInProgress) {
-               if (!cloudStorageEnabled) {
-                   showSyncNotification('Облачное хранилище недоступно');
-               }
-               return;
-           }
-           
-           syncInProgress = true;
-           showSyncNotification('Синхронизация...');
-           
-           try {
-               tg.CloudStorage.getItem('skillsTrackerData', (error, value) => {
-                   syncInProgress = false;
-                   
-                   if (error) {
-                       console.error('Sync error:', error);
-                       showSyncNotification('Ошибка синхронизации');
-                       return;
-                   }
-                   
-                   if (value) {
-                       try {
-                           const cloudData = JSON.parse(value);
-                           
-                           // Check if cloud data is newer
-                           const localLastSync = localStorage.getItem(storagePrefix + 'lastSync');
-                           const cloudLastSync = cloudData.lastSync;
-                           
-                           if (!localLastSync || new Date(cloudLastSync) > new Date(localLastSync)) {
-                               if (cloudData.skills) skills = cloudData.skills;
-                               if (cloudData.data) data = cloudData.data;
-                               if (cloudData.comments) comments = cloudData.comments;
-                               if (cloudData.startDate) startDate = cloudData.startDate;
-                               
-                               localStorage.setItem(storagePrefix + 'skills', JSON.stringify(skills));
-                               localStorage.setItem(storagePrefix + 'data', JSON.stringify(data));
-                               localStorage.setItem(storagePrefix + 'comments', JSON.stringify(comments));
-                               localStorage.setItem(storagePrefix + 'startDate', startDate);
-                               localStorage.setItem(storagePrefix + 'lastSync', cloudLastSync);
-                               
-                               showSyncNotification('Данные обновлены из облака');
-                               
-                               if (isMobile()) {
-                                   renderSkills();
-                               } else {
-                                   updateDates();
-                               }
-                           } else {
-                               showSyncNotification('Локальные данные актуальны');
-                           }
-                       } catch (e) {
-                           console.error('Parse error:', e);
-                           showSyncNotification('Ошибка чтения данных');
-                       }
-                   } else {
-                       showSyncNotification('Нет данных в облаке');
-                       // If no cloud data, sync local data to cloud
-                       syncToCloud();
-                   }
-               });
-           } catch (e) {
-               syncInProgress = false;
-               console.error('Cloud Storage error:', e);
-               showSyncNotification('Облачное хранилище недоступно');
-           }
-       }
-       
+    
        function showSyncNotification(message) {
            const notification = document.createElement('div');
            notification.style.cssText = `
@@ -2539,37 +2421,18 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
        }
        function forceSync() {
     if (confirm('Загрузить все данные из облака? Локальные изменения будут перезаписаны.')) {
-        localStorage.clear();
+        // Очищаем только данные, но не весь localStorage
+        data = {};
+        comments = {};
+        skills = [];
+        localStorage.removeItem(storagePrefix + 'skills');
+        localStorage.removeItem(storagePrefix + 'data');
+        localStorage.removeItem(storagePrefix + 'comments');
+        localStorage.removeItem(storagePrefix + 'lastFirebaseSync');
+        
+        // Перезагружаем
         location.reload();
     }
-    function showFirebaseStatus() {
-    const content = `
-        <div class="info-section">
-            <h3>Статус Firebase</h3>
-            <p class="info-text"><strong>User ID:</strong> ${userId}</p>
-            <p class="info-text"><strong>Firebase ID:</strong> ${firebaseSecureId}</p>
-            <p class="info-text"><strong>Firebase включен:</strong> ${firebaseEnabled ? 'Да' : 'Нет'}</p>
-            <p class="info-text"><strong>Firebase User:</strong> ${firebaseUser ? firebaseUser.uid : 'Нет'}</p>
-            <p class="info-text"><strong>Есть локальные данные:</strong> ${Object.keys(data).length > 0 ? 'Да' : 'Нет'}</p>
-        </div>
-        <button class="action-button primary" onclick="forceSyncFromFirebase()" style="width: 100%; margin-top: 16px;">
-            Принудительно загрузить из облака
-        </button>
-    `;
-    showModal('Firebase Status', content);
-}
-
-function forceSyncFromFirebase() {
-    // Очищаем локальные данные
-    data = {};
-    comments = {};
-    skills = [];
-    localStorage.removeItem(storagePrefix + 'lastFirebaseSync');
-    
-    // Загружаем из Firebase
-    syncFromFirebase();
-    closeModal();
-}
 }
        
        // Modal swipe to close (mobile only)
@@ -2616,7 +2479,50 @@ function forceSyncFromFirebase() {
                closeModal();
            }
        });
-       
+       function showFirebaseStatus() {
+    const content = `
+        <div class="info-section">
+            <h3>Статус Firebase</h3>
+            <p class="info-text"><strong>User ID:</strong> ${userId}</p>
+            <p class="info-text"><strong>Firebase ID:</strong> ${firebaseSecureId}</p>
+            <p class="info-text"><strong>Firebase включен:</strong> ${firebaseEnabled ? 'Да' : 'Нет'}</p>
+            <p class="info-text"><strong>Firebase User:</strong> ${firebaseUser ? firebaseUser.uid : 'Нет'}</p>
+            <p class="info-text"><strong>Есть локальные данные:</strong> ${Object.keys(data).length > 0 ? 'Да' : 'Нет'}</p>
+        </div>
+        <button class="action-button primary" onclick="forceSyncFromFirebase()" style="width: 100%; margin-top: 16px;">
+            Принудительно загрузить из облака
+        </button>
+    `;
+    showModal('Firebase Status', content);
+}
+
+function forceSyncFromFirebase() {
+    // Очищаем локальные данные
+    data = {};
+    comments = {};
+    skills = [];
+    localStorage.removeItem(storagePrefix + 'lastFirebaseSync');
+    
+    // Загружаем из Firebase
+    syncFromFirebase();
+    closeModal();
+}
+
+function forceSync() {
+    if (confirm('Загрузить все данные из облака? Локальные изменения будут перезаписаны.')) {
+        // Очищаем только данные, но не весь localStorage
+        data = {};
+        comments = {};
+        skills = [];
+        localStorage.removeItem(storagePrefix + 'skills');
+        localStorage.removeItem(storagePrefix + 'data');
+        localStorage.removeItem(storagePrefix + 'comments');
+        localStorage.removeItem(storagePrefix + 'lastFirebaseSync');
+        
+        // Перезагружаем
+        location.reload();
+    }
+}
        // Initialize
        init();
        
