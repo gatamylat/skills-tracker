@@ -1163,21 +1163,6 @@
             messagingSenderId: "108202530564",
             appId: "1:108202530564:web:31ecf70071f49a89abe251"
         };
-let syncInProgress = false;
-let cloudStorageEnabled = false;
-        
-        // Initialize Firebase
-let db = null;
-let firebaseAuth = null;
-let firebaseUser = null;
-let firebaseEnabled = false;
-let syncInProgress = false;  // ДОБАВИТЬ ЭТУ СТРОКУ
-let cloudStorageEnabled = false;  // ДОБАВИТЬ ЭТУ СТРОКУ
-
-// Заглушка для отсутствующей функции
-function syncFromCloud() {
-    console.log('Cloud sync not implemented');
-}
         
         try {
             firebase.initializeApp(firebaseConfig);
@@ -1226,6 +1211,7 @@ function syncFromCloud() {
         // Storage
         const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
         const storagePrefix = `tg_skills_${userId}_`;
+        
         // Функция для безопасного хеширования
 function simpleHash(str) {
     let hash = 0;
@@ -1542,9 +1528,7 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
        
        function init() {
     loadData();
-    
-    // Убираем вызов syncFromCloud() отсюда
-    
+        
     if (isMobile()) {
         updateDateDisplay();
         renderSkills();
@@ -1553,21 +1537,7 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
         updateDates();
     }
 }
-           
-           // Try to sync from cloud on startup (will sync from Firebase after auth)
-           // if (cloudStorageEnabled) {
-//     syncFromCloud();
-// }
-           
-           if (isMobile()) {
-               updateDateDisplay();
-               renderSkills();
-           } else {
-               document.getElementById('startDate').value = startDate;
-               updateDates();
-           }
-       }
-       
+                  
        // Mobile functions
        function updateDateDisplay() {
            const today = new Date();
