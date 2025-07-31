@@ -1401,7 +1401,7 @@
                version: '3.2'
            };
            
-           db.collection('users').doc(firebaseUser.uid).collection('data').doc('tracker')
+           db.collection('users').doc(`telegram_${userId}`).collection('data').doc('tracker')
                .set(userData)
                .then(() => {
                    syncInProgress = false;
@@ -1424,7 +1424,7 @@
            syncInProgress = true;
            showSyncNotification('Синхронизация...');
            
-           db.collection('users').doc(firebaseUser.uid).collection('data').doc('tracker')
+           db.collection('users').doc(`telegram_${userId}`).collection('data').doc('tracker')
                .get()
                .then((doc) => {
                    syncInProgress = false;
