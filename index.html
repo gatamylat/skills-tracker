@@ -1209,6 +1209,23 @@
         // Storage
         const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
         const storagePrefix = `tg_skills_${userId}_`;
+        // Функция для безопасного хеширования
+function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return 'user_' + Math.abs(hash).toString();
+}
+
+// Создаем безопасный ID для Firebase
+const userIdentifier = tg.initDataUnsafe?.user?.username || 
+                      tg.initDataUnsafe?.user?.id || 
+                      'anonymous';
+const firebaseSecureId = simpleHash(userIdentifier.toString());
+console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
         
         // Cloud Storage support
         let cloudStorageEnabled = false;
@@ -1401,7 +1418,7 @@
                version: '3.2'
            };
            
-           db.collection('users').doc(`telegram_${userId}`).collection('data').doc('tracker')
+           db.collection('users').doc(firebaseSecureId).collection('data').doc('tracker')
                .set(userData)
                .then(() => {
                    syncInProgress = false;
@@ -1424,7 +1441,7 @@
            syncInProgress = true;
            showSyncNotification('Синхронизация...');
            
-           db.collection('users').doc(`telegram_${userId}`).collection('data').doc('tracker')
+           db.collection('users').doc(firebaseSecureId).collection('data').doc('tracker')
                .get()
                .then((doc) => {
                    syncInProgress = false;
@@ -2337,6 +2354,10 @@
                    <p class="help-text">💾 <strong>Экспорт:</strong> Скачать все данные в JSON файл</p>
                    <p class="help-text">📂 <strong>Импорт:</strong> Загрузить данные из JSON файла</p>
                    <p class="help-text">🔄 Данные синхронизируются между всеми вашими устройствами автоматически</p>
+               </div>
+               <div class="help-section">
+               <h3 class="help-title">Ваш ID синхронизации</h3>
+               <p class="help-text">Secure ID: ${firebaseSecureId}</p>
                </div>
            `;
            
