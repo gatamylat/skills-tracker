@@ -1198,10 +1198,14 @@
                     syncFromFirebase();
                 })
                 .catch((error) => {
-                    console.error('Firebase auth error:', error);
-                    firebaseEnabled = false;
-                    showSyncNotification('Firebase недоступен. Работа в локальном режиме.');
-                });
+    console.error('Firebase auth error:', error);
+    firebaseEnabled = false;
+    // Показывать уведомление только один раз
+    if (!window.firebaseErrorShown) {
+        window.firebaseErrorShown = true;
+        showSyncNotification('Firebase недоступен. Работа в локальном режиме.');
+    }
+});
         } catch (error) {
             console.error('Firebase initialization error:', error);
             firebaseEnabled = false;
@@ -1491,30 +1495,52 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
        }
        
     
-       function showSyncNotification(message) {
-           const notification = document.createElement('div');
-           notification.style.cssText = `
-               position: fixed;
-               top: 20px;
-               left: 50%;
-               transform: translateX(-50%);
-               background: var(--primary);
-               color: var(--surface);
-               padding: 12px 20px;
-               border-radius: 8px;
-               font-size: 14px;
-               z-index: 10000;
-               animation: slideDown 0.3s ease;
-               box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-           `;
-           notification.textContent = message;
-           document.body.appendChild(notification);
-           
-           setTimeout(() => {
-               notification.style.animation = 'slideUp 0.3s ease';
-               setTimeout(() => notification.remove(), 300);
-           }, 2000);
-       }
+       let notificationTimeout = null;
+let lastNotificationMessage = '';
+
+function showSyncNotification(message) {
+    // Не показывать одинаковые сообщения подряд
+    if (message === lastNotificationMessage) return;
+    lastNotificationMessage = message;
+    
+    // Отменить предыдущее уведомление
+    if (notificationTimeout) {
+        clearTimeout(notificationTimeout);
+    }
+    
+    // Удалить существующее уведомление
+    const existingNotification = document.querySelector('.sync-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    const notification = document.createElement('div');
+    notification.className = 'sync-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: var(--surface);
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 10000;
+        animation: slideDown 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    notificationTimeout = setTimeout(() => {
+        notification.style.animation = 'slideUp 0.3s ease';
+        setTimeout(() => {
+            notification.remove();
+            lastNotificationMessage = '';
+        }, 300);
+    }, 2000);
+}
        
        // Add animation styles
        const style = document.createElement('style');
