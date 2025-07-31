@@ -146,6 +146,7 @@
             margin-bottom: 12px;
             overflow: hidden;
             transition: all 0.2s ease;
+            min-height: 120px;
         }
         
         .skill-card.completed {
@@ -183,6 +184,8 @@
             font-weight: 600;
             font-size: 16px;
             transition: all 0.2s ease;
+            flex-shrink: 0; /* Добавить эту строку */
+            margin-left: 12px; /* Добавить эту строку */
         }
         
         .skill-score.filled {
@@ -1057,15 +1060,11 @@
                     </button>
                     <button class="nav-button" onclick="showStats()">
                         <span>📊</span>
-                        <span>Статистика</span>
+                        <span>Стат.</span>
                     </button>
                     <button class="nav-button" onclick="showHelp()">
                         <span>❓</span>
                         <span>Справка</span>
-                    </button>
-                    <button class="nav-button" onclick="toggleView()">
-                        <span>💻</span>
-                        <span>Версия</span>
                     </button>
                 </div>
                 <div class="nav-buttons" style="margin-top: 8px;">
@@ -1090,6 +1089,10 @@
     <button class="nav-button" onclick="showFirebaseStatus()">
         <span>🔧</span>
         <span>Firebase</span>
+    </button>
+    <button class="nav-button" onclick="toggleView()">
+        <span>💻</span>
+        <span>Версия</span>
     </button>
 </div>
                 <input type="file" id="importFileMobile" accept=".json" onchange="importData(event)" style="display: none;">
@@ -1634,9 +1637,9 @@ function toggleView() {
                               <div>
     <div class="skill-name">${index + 1}. ${skill.name}</div>
     <div class="skill-category" style="font-size: 13px; line-height: 1.4; margin-top: 4px;">
-        ${skill.description}
-        ${skill.instruction ? `<br><em style="color: var(--accent);">Инструкция: ${skill.instruction}</em>` : ''}
-    </div>
+    ${skill.description}
+    ${skill.instruction ? `<div style="margin-top: 8px;"><em style="color: var(--accent);">Инструкция: ${skill.instruction}</em></div>` : ''}
+</div>
 </div>
                                <div class="skill-score ${hasScore ? (isHigh ? 'high' : 'filled') : ''}">
                                    ${hasScore ? score : '—'}
