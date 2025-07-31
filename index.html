@@ -1063,29 +1063,35 @@
                         <span>❓</span>
                         <span>Справка</span>
                     </button>
+                    <button class="nav-button" onclick="toggleView()">
+                        <span>💻</span>
+                        <span>Версия</span>
+                    </button>
                 </div>
                 <div class="nav-buttons" style="margin-top: 8px;">
-                    <button class="nav-button" onclick="exportData()">
-                        <span>💾</span>
-                        <span>Экспорт</span>
-                    </button>
-                    <button class="nav-button" onclick="document.getElementById('importFileMobile').click()">
-                        <span>📂</span>
-                        <span>Импорт</span>
-                    </button>
-                    <button class="nav-button" onclick="syncFromFirebase()">
-                        <span>☁️</span>
-                        <span>Синхронизация</span>
-                    </button>
-                    <button class="nav-button" onclick="forceSync()">
-                        <span>⬇️</span>
-                        <span>Загрузить</span>
-                    </button>
-                    <button class="nav-button" onclick="showFirebaseStatus()">
-                        <span>🔧</span>
-                        <span>Firebase</span>
-                    </button>
-                </div>
+    <button class="nav-button" onclick="exportData()">
+        <span>💾</span>
+        <span>Экспорт</span>
+    </button>
+    <button class="nav-button" onclick="document.getElementById('importFileMobile').click()">
+        <span>📂</span>
+        <span>Импорт</span>
+    </button>
+    <button class="nav-button" onclick="syncFromFirebase()">
+        <span>☁️</span>
+        <span>Синхр.</span>
+    </button>
+</div>
+<div class="nav-buttons" style="margin-top: 8px;">
+    <button class="nav-button" onclick="forceSync()">
+        <span>⬇️</span>
+        <span>Загрузить</span>
+    </button>
+    <button class="nav-button" onclick="showFirebaseStatus()">
+        <span>🔧</span>
+        <span>Firebase</span>
+    </button>
+</div>
                 <input type="file" id="importFileMobile" accept=".json" onchange="importData(event)" style="display: none;">
             </div>
             
@@ -1551,6 +1557,21 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
         updateDates();
     }
 }
+// Toggle between mobile and desktop view
+function toggleView() {
+    const isMobileView = document.querySelector('.mobile-view').style.display !== 'none';
+    if (isMobileView) {
+        document.querySelector('.mobile-view').style.display = 'none';
+        document.querySelector('.desktop-view').style.display = 'block';
+        document.getElementById('startDate').value = startDate;
+        updateDates();
+    } else {
+        document.querySelector('.mobile-view').style.display = 'block';
+        document.querySelector('.desktop-view').style.display = 'none';
+        updateDateDisplay();
+        renderSkills();
+    }
+}
                   
        // Mobile functions
        function updateDateDisplay() {
@@ -1584,10 +1605,13 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
                    <div class="skill-card ${hasScore ? 'completed' : ''}" data-skill-id="${skill.id}">
                        <div class="skill-header" onclick="toggleSkillActions(${skill.id})">
                            <div class="skill-title">
-                               <div>
-                                   <div class="skill-name">${index + 1}. ${skill.name}</div>
-                                   <div class="skill-category">${skill.category}</div>
-                               </div>
+                              <div>
+    <div class="skill-name">${index + 1}. ${skill.name}</div>
+    <div class="skill-category" style="font-size: 13px; line-height: 1.4; margin-top: 4px;">
+        ${skill.description}
+        ${skill.instruction ? `<br><em style="color: var(--accent);">Инструкция: ${skill.instruction}</em>` : ''}
+    </div>
+</div>
                                <div class="skill-score ${hasScore ? (isHigh ? 'high' : 'filled') : ''}">
                                    ${hasScore ? score : '—'}
                                </div>
