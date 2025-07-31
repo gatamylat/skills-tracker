@@ -1163,12 +1163,21 @@
             messagingSenderId: "108202530564",
             appId: "1:108202530564:web:31ecf70071f49a89abe251"
         };
+let syncInProgress = false;
+let cloudStorageEnabled = false;
         
         // Initialize Firebase
-        let db = null;
-        let firebaseAuth = null;
-        let firebaseUser = null;
-        let firebaseEnabled = false;
+let db = null;
+let firebaseAuth = null;
+let firebaseUser = null;
+let firebaseEnabled = false;
+let syncInProgress = false;  // ДОБАВИТЬ ЭТУ СТРОКУ
+let cloudStorageEnabled = false;  // ДОБАВИТЬ ЭТУ СТРОКУ
+
+// Заглушка для отсутствующей функции
+function syncFromCloud() {
+    console.log('Cloud sync not implemented');
+}
         
         try {
             firebase.initializeApp(firebaseConfig);
@@ -1376,20 +1385,20 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
             }
         }
         function saveData() {
-           localStorage.setItem(storagePrefix + 'skills', JSON.stringify(skills));
-           localStorage.setItem(storagePrefix + 'data', JSON.stringify(data));
-           localStorage.setItem(storagePrefix + 'comments', JSON.stringify(comments));
-           localStorage.setItem(storagePrefix + 'startDate', startDate);
-           
-           if (tg.HapticFeedback) {
-               tg.HapticFeedback.impactOccurred('light');
-           }
-                      
-           // Sync to Firebase if available
-           if (firebaseEnabled && firebaseUser && !syncInProgress) {
-               syncToFirebase();
-           }
-       }
+    localStorage.setItem(storagePrefix + 'skills', JSON.stringify(skills));
+    localStorage.setItem(storagePrefix + 'data', JSON.stringify(data));
+    localStorage.setItem(storagePrefix + 'comments', JSON.stringify(comments));
+    localStorage.setItem(storagePrefix + 'startDate', startDate);
+    
+    if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+    }
+    
+    // Sync to Firebase if available
+    if (firebaseEnabled && firebaseUser && !syncInProgress) {
+        syncToFirebase();
+    }
+}
        
        // Firebase sync functions
        function syncToFirebase() {
@@ -1532,12 +1541,23 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
        }
        
        function init() {
-           loadData();
+    loadData();
+    
+    // Убираем вызов syncFromCloud() отсюда
+    
+    if (isMobile()) {
+        updateDateDisplay();
+        renderSkills();
+    } else {
+        document.getElementById('startDate').value = startDate;
+        updateDates();
+    }
+}
            
            // Try to sync from cloud on startup (will sync from Firebase after auth)
-           if (cloudStorageEnabled) {
-               syncFromCloud();
-           }
+           // if (cloudStorageEnabled) {
+//     syncFromCloud();
+// }
            
            if (isMobile()) {
                updateDateDisplay();
