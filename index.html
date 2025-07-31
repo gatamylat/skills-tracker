@@ -1164,6 +1164,19 @@
             appId: "1:108202530564:web:31ecf70071f49a89abe251"
         };
         
+        // Initialize Firebase
+        let db = null;
+        let firebaseAuth = null;
+        let firebaseUser = null;
+        let firebaseEnabled = false;
+        let syncInProgress = false;
+        let cloudStorageEnabled = false;
+
+        // Заглушка для отсутствующей функции
+        function syncFromCloud() {
+            console.log('Cloud sync not implemented');
+        }
+        
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
@@ -1207,12 +1220,13 @@
             if (params.button_text_color) root.style.setProperty('--tg-theme-button-text-color', params.button_text_color);
             if (params.secondary_bg_color) root.style.setProperty('--tg-theme-secondary-bg-color', params.secondary_bg_color);
         }
-        
-        // Storage
+      
+
+// Storage
         const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
         const storagePrefix = `tg_skills_${userId}_`;
-        
-        // Функция для безопасного хеширования
+
+  // Функция для безопасного хеширования      
 function simpleHash(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -2409,21 +2423,7 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
            window.tempScore = undefined;
            currentEditingSkill = null;
        }
-       function forceSync() {
-    if (confirm('Загрузить все данные из облака? Локальные изменения будут перезаписаны.')) {
-        // Очищаем только данные, но не весь localStorage
-        data = {};
-        comments = {};
-        skills = [];
-        localStorage.removeItem(storagePrefix + 'skills');
-        localStorage.removeItem(storagePrefix + 'data');
-        localStorage.removeItem(storagePrefix + 'comments');
-        localStorage.removeItem(storagePrefix + 'lastFirebaseSync');
-        
-        // Перезагружаем
-        location.reload();
-    }
-}
+       
        
        // Modal swipe to close (mobile only)
        if (isMobile()) {
