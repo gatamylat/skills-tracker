@@ -1077,6 +1077,14 @@
                         <span>☁️</span>
                         <span>Синхронизация</span>
                     </button>
+                    <button class="nav-button" onclick="forceSync()">
+                        <span>⬇️</span>
+                        <span>Загрузить</span>
+                    </button>
+                    <button class="nav-button" onclick="showFirebaseStatus()">
+                        <span>🔧</span>
+                        <span>Firebase</span>
+                    </button>
                 </div>
                 <input type="file" id="importFileMobile" accept=".json" onchange="importData(event)" style="display: none;">
             </div>
@@ -2529,6 +2537,40 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
            window.tempScore = undefined;
            currentEditingSkill = null;
        }
+       function forceSync() {
+    if (confirm('Загрузить все данные из облака? Локальные изменения будут перезаписаны.')) {
+        localStorage.clear();
+        location.reload();
+    }
+    function showFirebaseStatus() {
+    const content = `
+        <div class="info-section">
+            <h3>Статус Firebase</h3>
+            <p class="info-text"><strong>User ID:</strong> ${userId}</p>
+            <p class="info-text"><strong>Firebase ID:</strong> ${firebaseSecureId}</p>
+            <p class="info-text"><strong>Firebase включен:</strong> ${firebaseEnabled ? 'Да' : 'Нет'}</p>
+            <p class="info-text"><strong>Firebase User:</strong> ${firebaseUser ? firebaseUser.uid : 'Нет'}</p>
+            <p class="info-text"><strong>Есть локальные данные:</strong> ${Object.keys(data).length > 0 ? 'Да' : 'Нет'}</p>
+        </div>
+        <button class="action-button primary" onclick="forceSyncFromFirebase()" style="width: 100%; margin-top: 16px;">
+            Принудительно загрузить из облака
+        </button>
+    `;
+    showModal('Firebase Status', content);
+}
+
+function forceSyncFromFirebase() {
+    // Очищаем локальные данные
+    data = {};
+    comments = {};
+    skills = [];
+    localStorage.removeItem(storagePrefix + 'lastFirebaseSync');
+    
+    // Загружаем из Firebase
+    syncFromFirebase();
+    closeModal();
+}
+}
        
        // Modal swipe to close (mobile only)
        if (isMobile()) {
