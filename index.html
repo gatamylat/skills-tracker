@@ -526,57 +526,58 @@
         
         /* Modal styles */
         .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: flex-end;
-            justify-content: center;
-            padding: 0;
-        }
-        /* Фикс для Telegram Desktop на iOS */
-@supports (-webkit-touch-callout: none) {
-    .modal {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        height: 100vh !important;
-        height: -webkit-fill-available !important;
-    }
-    
-    .modal-content {
-        position: relative !important;
-        margin-bottom: env(safe-area-inset-bottom, 0) !important;
-    }
-}
-
-/* Дополнительный фикс для Desktop режима */
-@media (min-width: 768px) {
-    .modal {
-        align-items: center !important;
-    }
-    
-    .modal-content {
-        margin-bottom: auto !important;
-    }
-}
-        
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;  /* По центру для десктопа */
+    justify-content: center;
+    padding: 20px;
+}        
         .modal.show {
             display: flex;
         }
+        /* Мобильная версия - модальное окно снизу */
+.mobile-view .modal {
+    align-items: flex-end;
+    padding: 0;
+}
+
+/* Десктопная версия - модальное окно по центру */
+.desktop-view .modal {
+    align-items: center;
+    padding: 20px;
+}
         
         .modal-content {
-            background: var(--surface);
-            width: 100%;
-            max-height: 80vh;
-            border-radius: 16px 16px 0 0;
-            display: flex;
-            flex-direction: column;
-            animation: slideUp 0.3s ease;
-        }
+    background: var(--surface);
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+    position: relative;
+    margin: auto;
+}
+
+/* Для мобильной версии */
+.mobile-view .modal-content {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+}
+
+/* Для десктопной версии */
+.desktop-view .modal-content {
+    max-width: 500px;
+    border-radius: 16px;
+}
         
         @keyframes slideUp {
             from {
@@ -1020,25 +1021,7 @@
                 --hover: rgba(255,255,255,0.05);
             }
         }
-        
-        /* Desktop modal adjustments */
-        @media (min-width: 768px) {
-            .modal-content {
-                max-width: 500px;
-                max-height: 85vh;
-                border-radius: 16px;
-                margin: auto;
-            }
-            
-            .modal {
-                align-items: center;
-                padding: 20px;
-            }
-            
-            .modal-drag-handle {
-                display: none;
-            }
-        }
+
         
         /* Responsive breakpoint */
         @media (min-width: 768px) {
@@ -1513,11 +1496,17 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
                            
                            showSyncNotification('Данные обновлены из облака');
                            
-                           if (isMobile()) {
-                               renderSkills();
-                           } else {
-                               updateDates();
-                           }
+                           // Обновляем интерфейс только если данные действительно изменились
+const hasDataChanged = JSON.stringify(firebaseData.skills) !== JSON.stringify(skills) ||
+                      JSON.stringify(firebaseData.data) !== JSON.stringify(data);
+
+if (hasDataChanged) {
+    if (isMobile()) {
+        renderSkills();
+    } else {
+        updateDates();
+    }
+}
                        } else {
                            showSyncNotification('Локальные данные актуальны');
                        }
@@ -1634,14 +1623,15 @@ function showSyncNotification(message) {
 function toggleView() {
     const isMobileView = document.querySelector('.mobile-view').style.display !== 'none';
     const isActuallyMobile = window.innerWidth < 768;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
     if (isMobileView) {
         // Переключаемся на десктоп
         document.querySelector('.mobile-view').style.display = 'none';
         document.querySelector('.desktop-view').style.display = 'block';
         
-        // Устанавливаем масштаб только для мобильных устройств
-        if (isActuallyMobile) {
+        // Устанавливаем масштаб только для Android мобильных устройств
+        if (isActuallyMobile && !isIOS) {
             document.querySelector('meta[name="viewport"]').setAttribute('content', 
                 'width=1200, initial-scale=0.5, maximum-scale=2.0, user-scalable=yes');
         }
@@ -1653,17 +1643,14 @@ function toggleView() {
         document.querySelector('.mobile-view').style.display = 'block';
         document.querySelector('.desktop-view').style.display = 'none';
         
-        // Восстанавливаем масштаб только на реальных мобильных устройствах
-        if (isActuallyMobile) {
-            document.querySelector('meta[name="viewport"]').setAttribute('content', 
-                'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-        }
+        // Восстанавливаем масштаб
+        document.querySelector('meta[name="viewport"]').setAttribute('content', 
+            'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
         
         updateDateDisplay();
         renderSkills();
     }
-}
-                  
+}                
        // Mobile functions
        function updateDateDisplay() {
            const today = new Date();
@@ -2024,53 +2011,119 @@ function toggleView() {
            if (tg.HapticFeedback) {
                tg.HapticFeedback.selectionChanged();
            }
-       }
+        }
        
-       function saveScore() {
-           if (window.tempScore === undefined) {
-               tg.showAlert('Выберите оценку');
-               return;
-           }
-           
-           const dateKey = getDateKey(currentEditingSkill.date);
-           const key = `${dateKey}-${currentEditingSkill.id}`;
-           
-           data[key] = window.tempScore;
-           saveData();
-           
-           window.tempScore = undefined;
-           currentEditingSkill = null;
-           
-           closeModal();
-           
-           if (isMobile()) {
-               renderSkills();
-           } else {
-               updateDates();
-           }
-       }
+        function saveScore() {
+    if (window.tempScore === undefined) {
+        tg.showAlert('Выберите оценку');
+        return;
+    }
+    
+    const dateKey = getDateKey(currentEditingSkill.date);
+    const key = `${dateKey}-${currentEditingSkill.id}`;
+    const skillId = currentEditingSkill.id; // Сохраняем ID
+    
+    data[key] = window.tempScore;
+    saveData();
+    
+    window.tempScore = undefined;
+    
+    if (isMobile()) {
+        // Обновляем только конкретную карточку навыка
+        const skillCard = document.querySelector(`[data-skill-id="${skillId}"]`);
+        if (skillCard) {
+            const score = data[key];
+            const isHigh = score >= 5;
+            
+            // Обновляем классы карточки
+            skillCard.classList.add('completed');
+            
+            // Обновляем отображение оценки
+            const scoreElement = skillCard.querySelector('.skill-score');
+            if (scoreElement) {
+                scoreElement.textContent = score;
+                scoreElement.classList.add('filled');
+                scoreElement.classList.toggle('high', isHigh);
+            }
+            
+            // Обновляем текст кнопки
+            const scoreButton = skillCard.querySelector('.action-button.primary');
+            if (scoreButton) {
+                scoreButton.textContent = 'Изменить оценку';
+            }
+        }
+    } else {
+        updateDates();
+    }
+    
+    currentEditingSkill = null; // Обнуляем в конце
+    closeModal();
+} 
        
        function saveComment() {
-           const commentText = document.getElementById('commentInput').value.trim();
-           const dateKey = getDateKey(currentEditingSkill.date);
-           const key = `${dateKey}-${currentEditingSkill.id}`;
-           
-           if (commentText) {
-               comments[key] = commentText;
-           } else {
-               delete comments[key];
-           }
-           
-           saveData();
-           currentEditingSkill = null;
-           closeModal();
-           
-           if (isMobile()) {
-               renderSkills();
-           } else {
-               updateDates();
-           }
-       }
+    const commentText = document.getElementById('commentInput').value.trim();
+    const dateKey = getDateKey(currentEditingSkill.date);
+    const key = `${dateKey}-${currentEditingSkill.id}`;
+    const skillId = currentEditingSkill.id; // Сохраняем ID
+    
+    if (commentText) {
+        comments[key] = commentText;
+    } else {
+        delete comments[key];
+    }
+    
+    saveData();
+    
+    if (isMobile()) {
+        const skillCard = document.querySelector(`[data-skill-id="${skillId}"]`);
+        if (skillCard) {
+            const todayKey = getTodayKey();
+            const key = `${todayKey}-${skillId}`;
+            const commentText = comments[key];
+            
+            // Находим существующий элемент комментария
+            let commentElement = skillCard.querySelector('.skill-comment');
+            
+            if (commentText) {
+                // Если комментарий есть
+                if (commentElement) {
+                    // Обновляем существующий
+                    commentElement.textContent = commentText;
+                } else {
+                    // Создаем новый элемент комментария
+                    const skillHeader = skillCard.querySelector('.skill-header');
+                    commentElement = document.createElement('div');
+                    commentElement.className = 'skill-comment';
+                    commentElement.textContent = commentText;
+                    // Вставляем после skill-header
+                    skillHeader.insertAdjacentElement('afterend', commentElement);
+                }
+                
+                // Обновляем текст кнопки
+                const commentButton = skillCard.querySelector('.action-button:not(.primary)');
+                if (commentButton) {
+                    commentButton.textContent = 'Изменить комментарий';
+                }
+            } else {
+                // Если комментарий удален
+                if (commentElement) {
+                    commentElement.remove();
+                }
+                
+                // Обновляем текст кнопки
+                const commentButton = skillCard.querySelector('.action-button:not(.primary)');
+                if (commentButton) {
+                    commentButton.textContent = 'Добавить комментарий';
+                }
+            }
+        }
+    } else {
+        updateDates();
+    }
+    
+    currentEditingSkill = null; // Обнуляем в конце
+    closeModal();
+} 
        
        function showSkillDetails(skill) {
            const content = `
