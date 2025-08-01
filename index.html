@@ -1723,21 +1723,23 @@ function toggleView() {
        }
        
        function toggleSkillActions(skillId) {
-           const actions = document.getElementById(`actions-${skillId}`);
-           const isVisible = actions.style.display !== 'none';
-           
-           // Hide all other actions
-           document.querySelectorAll('.skill-actions').forEach(el => {
-               el.style.display = 'none';
-           });
-           
-           // Toggle current
-           actions.style.display = isVisible ? 'none' : 'flex';
-           
-           if (!isVisible && tg.HapticFeedback) {
-               tg.HapticFeedback.impactOccurred('light');
-           }
-       }
+    const actions = document.getElementById(`actions-${skillId}`);
+    const isVisible = actions.style.display !== 'none';
+    
+    // Скрываем все другие действия БЕЗ перерисовки
+    document.querySelectorAll('.skill-actions').forEach(el => {
+        if (el.id !== `actions-${skillId}`) {
+            el.style.display = 'none';
+        }
+    });
+    
+    // Переключаем текущее
+    actions.style.display = isVisible ? 'none' : 'flex';
+    
+    if (!isVisible && tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+    }
+}
        
        // Desktop functions
        function updateDates() {
