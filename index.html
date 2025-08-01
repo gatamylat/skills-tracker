@@ -77,47 +77,6 @@
             flex-direction: column;
             background: var(--surface);
         }
-        /* Desktop styles for mobile view */
-@media (min-width: 768px) {
-    .mobile-view .container {
-        max-width: 800px;
-        margin: 0 auto;
-        box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    }
-    
-    .mobile-view {
-        background: #f5f5f7;
-        min-height: 100vh;
-    }
-    
-    .mobile-view .header {
-        font-size: 18px;
-    }
-    
-    .mobile-view .nav-button {
-        font-size: 16px;
-        padding: 12px;
-    }
-    
-    .mobile-view .skill-card {
-        min-height: 140px;
-    }
-    
-    .mobile-view .skill-name {
-        font-size: 18px;
-    }
-    
-    .mobile-view .skill-score {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-    }
-    
-    .mobile-view .action-button {
-        font-size: 16px;
-        padding: 14px;
-    }
-}
         
         /* Mobile Header */
         .header {
@@ -1035,13 +994,13 @@
         }
         
         /* Desktop modal adjustments */
-        /* @media (min-width: 768px) {
+        @media (min-width: 768px) {
             .modal-content {
                 max-width: 500px;
                 max-height: 85vh;
                 border-radius: 16px;
                 margin: auto;
-            }*/
+            }
             
             .modal {
                 align-items: center;
@@ -1051,25 +1010,24 @@
             .modal-drag-handle {
                 display: none;
             }
+        }
         
-        /* Responsive breakpoint - ОТКЛЮЧЕНО для ручного управления */
-/*
-@media (min-width: 768px) {
-    .mobile-view {
-        display: none;
-    }
-    
-    .desktop-view {
-        display: block;
-    }
-    
-    body {
-        font-size: 14px;
-        padding: 0;
-        background: #f5f5f7;
-    }
-}
-*/
+        /* Responsive breakpoint */
+        @media (min-width: 768px) {
+            .mobile-view {
+                display: none;
+            }
+            
+            .desktop-view {
+                display: block;
+            }
+            
+            body {
+                font-size: 14px;
+                padding: 0;
+                background: #f5f5f7;
+            }
+        }
         
         /* Loading */
         .loading {
@@ -1084,24 +1042,6 @@
         input[type="file"] {
             display: none;
         }
-        /* Force mobile view display */
-.mobile-view {
-    display: block !important;
-}
-
-/* Hide desktop by default */
-.desktop-view {
-    display: none !important;
-}
-
-/* Show desktop only when explicitly set */
-body.show-desktop .mobile-view {
-    display: none !important;
-}
-
-body.show-desktop .desktop-view {
-    display: block !important;
-}
     </style>
 </head>
 <body>
@@ -1661,31 +1601,17 @@ function showSyncNotification(message) {
         updateDates();
     }
 }
-
 // Toggle between mobile and desktop view
-/*function toggleView() {
-    const isMobileView = document.querySelector('.mobile-view').style.display !== 'none';
-    const isActuallyMobile = window.innerWidth < 768;*/
-
-    // Toggle between mobile and desktop view
 function toggleView() {
-    if (document.body.classList.contains('show-desktop')) {
-        document.body.classList.remove('show-desktop');
-        updateDateDisplay();
-        renderSkills();
-    } else {
-        document.body.classList.add('show-desktop');
-        document.getElementById('startDate').value = startDate;
-        updateDates();
-    }
-}  
+    const isMobileView = document.querySelector('.mobile-view').style.display !== 'none';
+    
     if (isMobileView) {
         // Переключаемся на десктоп
         document.querySelector('.mobile-view').style.display = 'none';
         document.querySelector('.desktop-view').style.display = 'block';
         
-        // Устанавливаем масштаб только для мобильных устройств
-        if (isActuallyMobile) {
+        // Устанавливаем масштаб для мобильных устройств
+        if (window.innerWidth < 768) {
             document.querySelector('meta[name="viewport"]').setAttribute('content', 
                 'width=1200, initial-scale=0.5, maximum-scale=2.0, user-scalable=yes');
         }
@@ -1697,16 +1623,14 @@ function toggleView() {
         document.querySelector('.mobile-view').style.display = 'block';
         document.querySelector('.desktop-view').style.display = 'none';
         
-        // Восстанавливаем масштаб только на реальных мобильных устройствах
-        if (isActuallyMobile) {
-            document.querySelector('meta[name="viewport"]').setAttribute('content', 
-                'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-        }
+        // Восстанавливаем нормальный масштаб
+        document.querySelector('meta[name="viewport"]').setAttribute('content', 
+            'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
         
         updateDateDisplay();
         renderSkills();
     }
-
+}
                   
        // Mobile functions
        function updateDateDisplay() {
