@@ -1085,6 +1085,24 @@
         input[type="file"] {
             display: none;
         }
+        /* Force mobile view display */
+.mobile-view {
+    display: block !important;
+}
+
+/* Hide desktop by default */
+.desktop-view {
+    display: none !important;
+}
+
+/* Show desktop only when explicitly set */
+body.show-desktop .mobile-view {
+    display: none !important;
+}
+
+body.show-desktop .desktop-view {
+    display: block !important;
+}
     </style>
 </head>
 <body>
@@ -1646,9 +1664,21 @@ function showSyncNotification(message) {
 }
 
 // Toggle between mobile and desktop view
-function toggleView() {
+/*function toggleView() {
     const isMobileView = document.querySelector('.mobile-view').style.display !== 'none';
-    const isActuallyMobile = window.innerWidth < 768;
+    const isActuallyMobile = window.innerWidth < 768;*/
+    
+    function toggleView() {
+    if (document.body.classList.contains('show-desktop')) {
+        document.body.classList.remove('show-desktop');
+        updateDateDisplay();
+        renderSkills();
+    } else {
+        document.body.classList.add('show-desktop');
+        document.getElementById('startDate').value = startDate;
+        updateDates();
+    }
+}
     
     if (isMobileView) {
         // Переключаемся на десктоп
