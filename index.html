@@ -1051,7 +1051,6 @@
             .modal-drag-handle {
                 display: none;
             }
-        }
         
         /* Responsive breakpoint - ОТКЛЮЧЕНО для ручного управления */
 /*
@@ -1667,8 +1666,9 @@ function showSyncNotification(message) {
 /*function toggleView() {
     const isMobileView = document.querySelector('.mobile-view').style.display !== 'none';
     const isActuallyMobile = window.innerWidth < 768;*/
-    
-    function toggleView() {
+
+    // Toggle between mobile and desktop view
+function toggleView() {
     if (document.body.classList.contains('show-desktop')) {
         document.body.classList.remove('show-desktop');
         updateDateDisplay();
@@ -1678,8 +1678,7 @@ function showSyncNotification(message) {
         document.getElementById('startDate').value = startDate;
         updateDates();
     }
-}
-    
+}  
     if (isMobileView) {
         // Переключаемся на десктоп
         document.querySelector('.mobile-view').style.display = 'none';
@@ -1707,7 +1706,7 @@ function showSyncNotification(message) {
         updateDateDisplay();
         renderSkills();
     }
-}
+
                   
        // Mobile functions
        function updateDateDisplay() {
