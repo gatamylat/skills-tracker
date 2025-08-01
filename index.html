@@ -1601,17 +1601,19 @@ function showSyncNotification(message) {
         updateDates();
     }
 }
+
 // Toggle between mobile and desktop view
 function toggleView() {
     const isMobileView = document.querySelector('.mobile-view').style.display !== 'none';
+    const isActuallyMobile = window.innerWidth < 768;
     
     if (isMobileView) {
         // Переключаемся на десктоп
         document.querySelector('.mobile-view').style.display = 'none';
         document.querySelector('.desktop-view').style.display = 'block';
         
-        // Устанавливаем масштаб для мобильных устройств
-        if (window.innerWidth < 768) {
+        // Устанавливаем масштаб только для мобильных устройств
+        if (isActuallyMobile) {
             document.querySelector('meta[name="viewport"]').setAttribute('content', 
                 'width=1200, initial-scale=0.5, maximum-scale=2.0, user-scalable=yes');
         }
@@ -1623,9 +1625,11 @@ function toggleView() {
         document.querySelector('.mobile-view').style.display = 'block';
         document.querySelector('.desktop-view').style.display = 'none';
         
-        // Восстанавливаем нормальный масштаб
-        document.querySelector('meta[name="viewport"]').setAttribute('content', 
-            'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        // Восстанавливаем масштаб только на реальных мобильных устройствах
+        if (isActuallyMobile) {
+            document.querySelector('meta[name="viewport"]').setAttribute('content', 
+                'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
         
         updateDateDisplay();
         renderSkills();
