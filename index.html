@@ -1597,11 +1597,16 @@ function showSyncNotification(message) {
        }
        
        function getDayFromStart(date) {
-           const start = new Date(startDate);
-           const diffTime = Math.abs(date - start);
-           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-           return diffDays;
-       }
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    
+    const diffTime = compareDate - start;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
        
  function init() {
     // Защита от повторной инициализации
@@ -1883,26 +1888,31 @@ function toggleView() {
        }
        
        function setScoreDesktop(skillId, date, score) {
-           const dateKey = getDateKey(date);
-           const key = `${dateKey}-${skillId}`;
-           const dayNum = getDayFromStart(date);
-           const cell = document.querySelector(`[data-skill-id="${skillId}"][data-day="${dayNum}"]`);
-           
-           data[key] = score;
-           cell.classList.add('checked');
-           cell.classList.remove(...Array.from(cell.classList).filter(c => c.startsWith('score-')));
-           cell.classList.add(`score-${score}`);
-           cell.innerHTML = `<div class="score">${score}</div>`;
-           
-           if (comments[key]) {
-               const indicator = document.createElement('div');
-               indicator.className = 'comment-indicator';
-               cell.appendChild(indicator);
-           }
-           
-           saveData();
-           closeScoreSelector();
-       }
+    const dateKey = getDateKey(date);
+    const key = `${dateKey}-${skillId}`;
+    const dayNum = getDayFromStart(date); // Используем исправленную функцию
+    const cell = document.querySelector(`[data-skill-id="${skillId}"][data-day="${dayNum}"]`);
+    
+    if (!cell) {
+        console.error('Cell not found for day:', dayNum);
+        return;
+    }
+    
+    data[key] = score;
+    cell.classList.add('checked');
+    cell.classList.remove(...Array.from(cell.classList).filter(c => c.startsWith('score-')));
+    cell.classList.add(`score-${score}`);
+    cell.innerHTML = `<div class="score">${score}</div>`;
+    
+    if (comments[key]) {
+        const indicator = document.createElement('div');
+        indicator.className = 'comment-indicator';
+        cell.appendChild(indicator);
+    }
+    
+    saveData();
+    closeScoreSelector();
+}
        
        function showTooltip(e, skillId, date) {
            const dateKey = getDateKey(date);
