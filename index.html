@@ -1077,6 +1077,10 @@
                         <span>❓</span>
                         <span>Справка</span>
                     </button>
+                    <button class="nav-button" onclick="showBlanks()">
+    <span>📄</span>
+    <span>Бланки</span>
+</button>
                 </div>
                 <div class="nav-buttons" style="margin-top: 8px;">
     <button class="nav-button" onclick="exportData()">
@@ -1133,6 +1137,7 @@
                 <div class="toolbar-group">
                     <button class="desktop-button" onclick="showInstructions()">Инструкция</button>
                     <button class="desktop-button" onclick="showStats()">Статистика</button>
+                    <button class="desktop-button" onclick="showBlanks()">📄 Бланки</button>
                     <button class="desktop-button danger" onclick="clearData()">Очистить</button>
                 </div>
                 
@@ -1381,6 +1386,68 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
         let data = {};
         let comments = {};
         let startDate = '';
+        let blanks = {}; // Хранение заполненных бланков
+let blankTemplates = [
+    {
+        id: 'descartes',
+        name: 'Квадрат Декарта',
+        description: 'Инструмент для принятия решений',
+        fields: [
+            { id: 'pros_if_yes', label: 'Что я получу, если это произойдет?', type: 'textarea' },
+            { id: 'pros_if_no', label: 'Что я получу, если это НЕ произойдет?', type: 'textarea' },
+            { id: 'cons_if_yes', label: 'Что я потеряю, если это произойдет?', type: 'textarea' },
+            { id: 'cons_if_no', label: 'Что я потеряю, если это НЕ произойдет?', type: 'textarea' }
+        ]
+    },
+    {
+        id: 'pros_cons_crisis',
+        name: 'За и против действий в кризисе',
+        description: 'Анализ действий в соответствии с кризисным побуждением',
+        fields: [
+            { id: 'problem_behavior', label: 'Проблемное поведение, которое вы пытаетесь прекратить', type: 'textarea' },
+            { id: 'action_pros_1', label: 'Действовать в соответствии с кризисным побуждением - ЗА (1)', type: 'text' },
+            { id: 'action_pros_2', label: 'Действовать в соответствии с кризисным побуждением - ЗА (2)', type: 'text' },
+            { id: 'action_pros_3', label: 'Действовать в соответствии с кризисным побуждением - ЗА (3)', type: 'text' },
+            { id: 'action_pros_4', label: 'Действовать в соответствии с кризисным побуждением - ЗА (4)', type: 'text' },
+            { id: 'action_pros_5', label: 'Действовать в соответствии с кризисным побуждением - ЗА (5)', type: 'text' },
+            { id: 'action_cons_1', label: 'Действовать в соответствии с кризисным побуждением - ПРОТИВ (1)', type: 'text' },
+            { id: 'action_cons_2', label: 'Действовать в соответствии с кризисным побуждением - ПРОТИВ (2)', type: 'text' },
+            { id: 'action_cons_3', label: 'Действовать в соответствии с кризисным побуждением - ПРОТИВ (3)', type: 'text' },
+            { id: 'action_cons_4', label: 'Действовать в соответствии с кризисным побуждением - ПРОТИВ (4)', type: 'text' },
+            { id: 'action_cons_5', label: 'Действовать в соответствии с кризисным побуждением - ПРОТИВ (5)', type: 'text' },
+            { id: 'resist_pros_1', label: 'Противостоять кризисному побуждению - ЗА (1)', type: 'text' },
+            { id: 'resist_pros_2', label: 'Противостоять кризисному побуждению - ЗА (2)', type: 'text' },
+            { id: 'resist_pros_3', label: 'Противостоять кризисному побуждению - ЗА (3)', type: 'text' },
+            { id: 'resist_pros_4', label: 'Противостоять кризисному побуждению - ЗА (4)', type: 'text' },
+            { id: 'resist_pros_5', label: 'Противостоять кризисному побуждению - ЗА (5)', type: 'text' },
+            { id: 'resist_cons_1', label: 'Противостоять кризисному побуждению - ПРОТИВ (1)', type: 'text' },
+            { id: 'resist_cons_2', label: 'Противостоять кризисному побуждению - ПРОТИВ (2)', type: 'text' },
+            { id: 'resist_cons_3', label: 'Противостоять кризисному побуждению - ПРОТИВ (3)', type: 'text' },
+            { id: 'resist_cons_4', label: 'Противостоять кризисному побуждению - ПРОТИВ (4)', type: 'text' },
+            { id: 'resist_cons_5', label: 'Противостоять кризисному побуждению - ПРОТИВ (5)', type: 'text' }
+        ]
+    },
+    {
+        id: 'skills_goals',
+        name: 'Цели тренинга навыков',
+        description: 'Определение целей для развития навыков ДБТ',
+        fields: [
+            { id: 'main_goal', label: 'ГЛАВНАЯ ЦЕЛЬ: Узнать, как изменить свое поведение, эмоции и мысли, связанные с жизненными проблемами, которые вызывают боль и страдание', type: 'textarea' },
+            { id: 'behavior_to_reduce_1', label: 'Поведение, которое необходимо ослабить (1)', type: 'text' },
+            { id: 'behavior_to_reduce_2', label: 'Поведение, которое необходимо ослабить (2)', type: 'text' },
+            { id: 'behavior_to_reduce_3', label: 'Поведение, которое необходимо ослабить (3)', type: 'text' },
+            { id: 'skills_to_increase_1', label: 'Навыки, которые необходимо закрепить (1)', type: 'text' },
+            { id: 'skills_to_increase_2', label: 'Навыки, которые необходимо закрепить (2)', type: 'text' },
+            { id: 'skills_to_increase_3', label: 'Навыки, которые необходимо закрепить (3)', type: 'text' },
+            { id: 'personal_goals_1', label: 'ЛИЧНЫЕ ЦЕЛИ - Поведение для ослабления (1)', type: 'text' },
+            { id: 'personal_goals_2', label: 'ЛИЧНЫЕ ЦЕЛИ - Поведение для ослабления (2)', type: 'text' },
+            { id: 'personal_goals_3', label: 'ЛИЧНЫЕ ЦЕЛИ - Поведение для ослабления (3)', type: 'text' },
+            { id: 'personal_skills_1', label: 'ЛИЧНЫЕ ЦЕЛИ - Навыки для закрепления (1)', type: 'text' },
+            { id: 'personal_skills_2', label: 'ЛИЧНЫЕ ЦЕЛИ - Навыки для закрепления (2)', type: 'text' },
+            { id: 'personal_skills_3', label: 'ЛИЧНЫЕ ЦЕЛИ - Навыки для закрепления (3)', type: 'text' }
+        ]
+    }
+];
         let currentEditingSkill = null;
         let longPressTimer;
         let isLongPress = false;
@@ -1410,13 +1477,18 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
             } else {
                 startDate = new Date().toISOString().split('T')[0];
             }
+            const savedBlanks = localStorage.getItem(storagePrefix + 'blanks');
+if (savedBlanks) {
+    blanks = JSON.parse(savedBlanks);
+}
+
         }
         function saveData() {
     localStorage.setItem(storagePrefix + 'skills', JSON.stringify(skills));
     localStorage.setItem(storagePrefix + 'data', JSON.stringify(data));
     localStorage.setItem(storagePrefix + 'comments', JSON.stringify(comments));
     localStorage.setItem(storagePrefix + 'startDate', startDate);
-    
+    localStorage.setItem(storagePrefix + 'blanks', JSON.stringify(blanks));
     if (tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
@@ -1436,6 +1508,7 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
                skills: skills,
                data: data,
                comments: comments,
+               blanks: blanks,
                startDate: startDate,
                lastSync: firebase.firestore.FieldValue.serverTimestamp(),
                telegramId: userId,
@@ -1486,11 +1559,13 @@ console.log('Firebase Secure ID:', firebaseSecureId); // Для отладки
                            if (firebaseData.skills) skills = firebaseData.skills;
                            if (firebaseData.data) data = firebaseData.data;
                            if (firebaseData.comments) comments = firebaseData.comments;
+                           if (firebaseData.blanks) blanks = firebaseData.blanks;
                            if (firebaseData.startDate) startDate = firebaseData.startDate;
                            
                            localStorage.setItem(storagePrefix + 'skills', JSON.stringify(skills));
                            localStorage.setItem(storagePrefix + 'data', JSON.stringify(data));
                            localStorage.setItem(storagePrefix + 'comments', JSON.stringify(comments));
+                           localStorage.setItem(storagePrefix + 'blanks', JSON.stringify(blanks));
                            localStorage.setItem(storagePrefix + 'startDate', startDate);
                            localStorage.setItem(storagePrefix + 'lastFirebaseSync', firebaseLastSync.toISOString());
                            
@@ -2437,6 +2512,226 @@ function toggleView() {
            
            showModal('Справка', content);
        }
+       function showBlanks() {
+    const savedBlanks = Object.keys(blanks).map(key => blanks[key]);
+    
+    const content = `
+        <div class="blanks-container">
+            <button class="${isMobile() ? 'action-button' : 'desktop-button'} primary" 
+                    onclick="showNewBlank()" style="width: 100%; margin-bottom: 16px;">
+                ➕ Создать новый бланк
+            </button>
+            
+            <h3 style="margin: 20px 0 10px; font-size: 16px; font-weight: 600;">Сохраненные бланки</h3>
+            ${savedBlanks.length === 0 ? 
+                '<p style="color: var(--secondary); text-align: center; padding: 20px;">Нет сохраненных бланков</p>' :
+                savedBlanks.map(blank => `
+                    <div class="skill-item" style="margin-bottom: 12px;">
+                        <div class="skill-info">
+                            <div class="skill-info-name">${blank.templateName}</div>
+                            <div class="skill-category-small">${new Date(blank.date).toLocaleDateString('ru')}</div>
+                            <div class="skill-category-small" style="margin-top: 4px;">${blank.title || 'Без названия'}</div>
+                        </div>
+                        <div class="skill-actions-desktop">
+                            <button class="${isMobile() ? 'action-button' : 'desktop-button'}" 
+                                    onclick="viewBlank('${blank.id}')">Просмотр</button>
+                            <button class="${isMobile() ? 'action-button' : 'desktop-button'}" 
+                                    onclick="editBlank('${blank.id}')">Изменить</button>
+                            <button class="${isMobile() ? 'action-button' : 'desktop-button'} danger" 
+                                    onclick="deleteBlank('${blank.id}')">Удалить</button>
+                        </div>
+                    </div>
+                `).join('')
+            }
+        </div>
+    `;
+    
+    showModal('Бланки для работы', content);
+}
+
+function showNewBlank() {
+    const content = `
+        <div class="blanks-templates">
+            <h3 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">Выберите тип бланка</h3>
+            ${blankTemplates.map(template => `
+                <div class="skill-item" style="cursor: pointer; margin-bottom: 12px;" 
+                     onclick="createBlank('${template.id}')">
+                    <div class="skill-info">
+                        <div class="skill-info-name">${template.name}</div>
+                        <div class="skill-category-small">${template.description}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    showModal('Новый бланк', content);
+}
+
+function createBlank(templateId) {
+    const template = blankTemplates.find(t => t.id === templateId);
+    if (!template) return;
+    
+    const blankId = Date.now().toString();
+    
+    const content = `
+        <form id="blankForm">
+            <div class="form-group">
+                <label>Название бланка (необязательно)</label>
+                <input type="text" id="blankTitle" placeholder="Например: Решение о смене работы">
+            </div>
+            
+            ${template.fields.map(field => `
+                <div class="form-group">
+                    <label>${field.label}</label>
+                    ${field.type === 'textarea' ? 
+                        `<textarea id="${field.id}" rows="4"></textarea>` :
+                        `<input type="${field.type}" id="${field.id}">`
+                    }
+                </div>
+            `).join('')}
+        </form>
+    `;
+    
+    const footer = `
+        <button class="modal-button cancel" onclick="closeModal()">Отмена</button>
+        <button class="modal-button save" onclick="saveBlank('${blankId}', '${templateId}')">Сохранить</button>
+    `;
+    
+    showModal(template.name, content, footer);
+}
+
+function saveBlank(blankId, templateId) {
+    const template = blankTemplates.find(t => t.id === templateId);
+    const title = document.getElementById('blankTitle').value.trim();
+    
+    const blankData = {
+        id: blankId,
+        templateId: templateId,
+        templateName: template.name,
+        title: title,
+        date: new Date().toISOString(),
+        fields: {}
+    };
+    
+    // Собираем данные из полей
+    template.fields.forEach(field => {
+        const value = document.getElementById(field.id).value.trim();
+        if (value) {
+            blankData.fields[field.id] = value;
+        }
+    });
+    
+    // Сохраняем бланк
+    blanks[blankId] = blankData;
+    saveBlanksData();
+    
+    closeModal();
+    showBlanks();
+    showSyncNotification('Бланк сохранен');
+}
+
+function viewBlank(blankId) {
+    const blank = blanks[blankId];
+    if (!blank) return;
+    
+    const template = blankTemplates.find(t => t.id === blank.templateId);
+    if (!template) return;
+    
+    const content = `
+        <div class="blank-view">
+            ${blank.title ? `<h3 style="margin-bottom: 16px;">${blank.title}</h3>` : ''}
+            <p style="color: var(--secondary); margin-bottom: 20px;">
+                ${new Date(blank.date).toLocaleDateString('ru')} ${new Date(blank.date).toLocaleTimeString('ru')}
+            </p>
+            
+            ${template.fields.map(field => `
+                <div class="info-section">
+                    <h3>${field.label}</h3>
+                    <p class="info-text" style="white-space: pre-wrap;">${blank.fields[field.id] || 'Не заполнено'}</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    showModal(blank.templateName, content);
+}
+
+function editBlank(blankId) {
+    const blank = blanks[blankId];
+    if (!blank) return;
+    
+    const template = blankTemplates.find(t => t.id === blank.templateId);
+    if (!template) return;
+    
+    const content = `
+        <form id="blankForm">
+            <div class="form-group">
+                <label>Название бланка (необязательно)</label>
+                <input type="text" id="blankTitle" value="${blank.title || ''}" 
+                       placeholder="Например: Решение о смене работы">
+            </div>
+            
+            ${template.fields.map(field => `
+                <div class="form-group">
+                    <label>${field.label}</label>
+                    ${field.type === 'textarea' ? 
+                        `<textarea id="${field.id}" rows="4">${blank.fields[field.id] || ''}</textarea>` :
+                        `<input type="${field.type}" id="${field.id}" value="${blank.fields[field.id] || ''}">`
+                    }
+                </div>
+            `).join('')}
+        </form>
+    `;
+    
+    const footer = `
+        <button class="modal-button cancel" onclick="closeModal()">Отмена</button>
+        <button class="modal-button save" onclick="updateBlank('${blankId}')">Сохранить изменения</button>
+    `;
+    
+    showModal(`Редактировать: ${template.name}`, content, footer);
+}
+
+function updateBlank(blankId) {
+    const blank = blanks[blankId];
+    if (!blank) return;
+    
+    const template = blankTemplates.find(t => t.id === blank.templateId);
+    blank.title = document.getElementById('blankTitle').value.trim();
+    
+    // Обновляем данные полей
+    template.fields.forEach(field => {
+        const value = document.getElementById(field.id).value.trim();
+        if (value) {
+            blank.fields[field.id] = value;
+        } else {
+            delete blank.fields[field.id];
+        }
+    });
+    
+    saveBlanksData();
+    closeModal();
+    showBlanks();
+    showSyncNotification('Бланк обновлен');
+}
+
+function deleteBlank(blankId) {
+    if (confirm('Удалить этот бланк? Это действие необратимо.')) {
+        delete blanks[blankId];
+        saveBlanksData();
+        showBlanks();
+        showSyncNotification('Бланк удален');
+    }
+}
+
+function saveBlanksData() {
+    localStorage.setItem(storagePrefix + 'blanks', JSON.stringify(blanks));
+    
+    // Синхронизация с Firebase
+    if (firebaseEnabled && firebaseUser && !syncInProgress) {
+        syncToFirebase();
+    }
+}
        
        function showInstructions() {
            showHelp();
