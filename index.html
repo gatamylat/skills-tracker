@@ -1078,9 +1078,13 @@
                         <span>Справка</span>
                     </button>
                     <button class="nav-button" onclick="showBlanks()">
-    <span>📄</span>
-    <span>Бланки</span>
-</button>
+                        <span>📄</span>
+                       <span>Бланки</span>
+                    </button>
+                    <button class="nav-button" onclick="setQuickReminder()">
+                     <span>⏰</span>
+                     <span>Напомн.</span>
+                    </button>
                 </div>
                 <div class="nav-buttons" style="margin-top: 8px;">
     <button class="nav-button" onclick="exportData()">
@@ -2512,6 +2516,68 @@ function toggleView() {
            
            showModal('Справка', content);
        }
+       // Функция для быстрого напоминания через Make.com
+function setQuickReminder() {
+    const content = `
+        <div style="padding: 20px;">
+            <h3>Быстрое напоминание</h3>
+            <p style="margin: 20px 0;">Выберите, когда напомнить про навыки:</p>
+            
+            <div style="display: grid; gap: 12px;">
+                <button class="action-button primary" onclick="sendTestToMake()">
+                    🧪 Тест (сразу)
+                </button>
+                <button class="action-button primary" onclick="sendReminderToMake('1h')">
+                    Через 1 час
+                </button>
+                <button class="action-button primary" onclick="sendReminderToMake('3h')">
+                    Через 3 часа
+                </button>
+                <button class="action-button primary" onclick="sendReminderToMake('evening')">
+                    Вечером (20:00)
+                </button>
+            </div>
+        </div>
+    `;
+    
+    showModal('Напоминание', content);
+}
+
+// Тестовая отправка
+function sendTestToMake() {
+    // ВСТАВЬТЕ СЮДА ВАШ URL ИЗ MAKE.COM
+    const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/f1wch1xcugr3ewv9xlv6gfx3eek6hbo5';
+    
+    const userId = tg.initDataUnsafe?.user?.id || '123456';
+    const userName = tg.initDataUnsafe?.user?.first_name || 'Тест';
+    
+    const data = {
+        telegram_id: userId.toString(),
+        message: "Тестовое сообщение от Skills Tracker"
+    };
+    
+    fetch(MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        showSyncNotification('✅ Тест отправлен! Проверьте Telegram');
+        closeModal();
+    })
+    .catch(error => {
+        showSyncNotification('❌ Ошибка отправки');
+        console.error('Error:', error);
+    });
+}
+
+// Отправка напоминания
+function sendReminderToMake(when) {
+    showSyncNotification('Эта функция пока в разработке. Используйте тест!');
+    closeModal();
+}
        function showBlanks() {
     const savedBlanks = Object.keys(blanks).map(key => blanks[key]);
     
